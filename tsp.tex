@@ -1,0 +1,284 @@
+% THIS IS SIGPROC-SP.TEX - VERSION 3.1
+% WORKS WITH V3.2SP OF ACM_PROC_ARTICLE-SP.CLS
+% APRIL 2009
+%
+% It is an example file showing how to use the 'acm_proc_article-sp.cls' V3.2SP
+% LaTeX2e document class file for Conference Proceedings submissions.
+% ----------------------------------------------------------------------------------------------------------------
+% This .tex file (and associated .cls V3.2SP) *DOES NOT* produce:
+%       1) The Permission Statement
+%       2) The Conference (location) Info information
+%       3) The Copyright Line with ACM data
+%       4) Page numbering
+% ---------------------------------------------------------------------------------------------------------------
+% It is an example which *does* use the .bib file (from which the .bbl file
+% is produced).
+% REMEMBER HOWEVER: After having produced the .bbl file,
+% and prior to final submission,
+% you need to 'insert'  your .bbl file into your source .tex file so as to provide
+% ONE 'self-contained' source file.
+%
+% Questions regarding SIGS should be sent to
+% Adrienne Griscti ---> griscti@acm.org
+%
+% Questions/suggestions regarding the guidelines, .tex and .cls files, etc. to
+% Gerald Murray ---> murray@hq.acm.org
+%
+% For tracking purposes - this is V3.1SP - APRIL 2009
+
+% Which approach you chose to solve the problem (e.g. from a paper). You my not use an existing implementation even if one exists. 
+% Whether it is exact, and if so which improvements does it use to improve on reduce the running time.  Be precise and detailed. 
+% Whether it is approximate, and if so what is the running time and what is the bound on the error (is it within 50%? Epsilon?)
+% You must show which problems you were able to solve, what was the length of the shortest tour you found, and how long (or how many steps) it took to find a solution for each of the problems you solved. 
+% I expect you to solve at least 3 problems;  A healthy dose of respect goes to the one who can solve the most. 
+% Include the relevant parts of your source code. Please take care to present the code in a readable format (e.g. use syntax highlighting, a fixed width font, avoid accidental line wrapping)
+
+\documentclass{acm_proc_article-sp}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{url}
+
+\begin{document}
+
+\title{Investigation of Traveling Salesman Problem}
+\subtitle{Concentrating on quasi-Optimal Approach}
+
+\numberofauthors{1} 
+\author{
+\alignauthor
+Kwangju Kim\\
+       \affaddr{Miami University Department of Computer Science and Software Engineering}\\
+       \email{kimk3 (at) miamioh.edu}
+}
+
+\date{December 11, 2016}
+
+
+\maketitle
+
+\terms{TSP, Algorithm, Time Complexity, Optimization}
+
+% You must briefly describe the problem you aim to solve
+\section{Introduction}
+\begin{flushleft}
+Traveling salesman problem (hereafter "TSP") is a problem to find the shortest path of a given graph, which traces all the vertexes with no duplicate pass.~\cite{waterloo} For the project, we have given a dataset from TSPLIB~\cite{tsplib}, one of the most valuable TSP dataset storage. This paper is to discuss what have been done to investigate to find the quasi-Optimal solutions, by trying several algorithmic approaches.
+
+This paper assumes that the reader well knows about TSP or any other term used for algorithm research.
+\end{flushleft}
+% Citation of Einstein paper.
+
+\section{Brute Force Approach}
+\begin{flushleft}
+There are many ways to solve TSP with brute force approach. This paper will discuss one of the methods which is the basic, simple approach.
+
+The discussion will be based on the real number example. First, suppose there are 5 cities. The number of cities the salesman can pick is 5. Since the salesman cannot return to the cities the salesman has already been, the number of next cities the salesman can pick is 4 $(5-1)$. Similarly, the next will be 3, and so on. As a result, we get 120 $(5! = 5 \cdot 4 \cdot 3 \cdot 2 \cdot 1)$ paths. Then we can just pick the path which has a minimum cost.
+
+In general, the brute force approach should seek $n!$ cases, where $n$ is the number of vertexes. As you know, this approach will be really inefficient, with $O(n!)$ time complexity, when it comes to the larger $n$. This paper will suggest and verify how to solve the complexity to solve TSP problem with the less time complexity.
+\end{flushleft}
+
+% You must solve for and prove  the asymptotic complexity of your solution, and verify that it falls within the bounds described by your instructor. You must prove that the solution you present is correct.
+\section{Approaches of Solution}
+\begin{flushleft}
+In this paragraph, procedural approaches of optimized solutions to solve TSP will be introduced. The main algorithm technique I have used solving TSP is greedy.
+\end{flushleft}
+
+\subsection{Step 1: Minimum Path First I}
+\begin{flushleft}
+This step suggests the salesman should always choose the next vertex whose distance with the current vertex is the minimum. For example, the salesman is currently in the city A, and the distance between A and other cities connected with A are given as following.
+\end{flushleft}
+
+\begin{itemize}
+\item B: 10
+\item C: 15
+\item D: 16
+\item E: 7
+\item F: 12
+\end{itemize}
+
+\begin{flushleft}
+Then the salesman should always choose E because the distance between A and E are shorter than any other distance with A. (Greedy) The salesman should also follow the same procedure when selecting the next cities with the minimum distance.
+
+\textbf{Naive approach.} The algorithm will first pick the random vertex, and trace the graph by selecting the next vertexes whose distance with the current vertex is minimum. The pseudocode is given in order to help understand this approach better.
+\end{flushleft}
+
+\begin{lstlisting}
+procedure mpf {
+  INPUT: a graph G
+  OUTPUT: the minimum path possible
+  
+  // first randomly pick a vertex
+  v := G.getRandomVertex();
+  L := G.getUnmarkedVertex();
+  p := new Path();
+  p.insert(v);
+  L.remove(v);
+  while (L is not empty) {
+    next := null; // this should hold
+                  // the next node
+    dist := 0; // this should hold
+               //the minimum distance
+    foreach (v1 in L) {
+      distNow := getDistance(v, v1);
+      if (distNow < dist) {
+        dist := distNow;
+        next := v1;
+      }
+    }
+    v := next
+    p.insert(next);
+    L.remove(next);
+  }
+}
+\end{lstlisting}
+
+\begin{flushleft}
+\textbf{Wider solution.} Here, we should run the above 'naive' approach to all the vertexes in the graph.
+\end{flushleft}
+
+\begin{lstlisting}
+procedure mpfMultiple {
+  INPUT: a graph G
+  OUTPUT: the minimum path possible
+  
+  path := null;
+  
+  foreach (vertex in G) {
+    path1 := mpfNonrandom(v, G);
+    if (sumDist(path) > sumDist(path1)) {
+      path := path1;
+    }
+  }
+  
+  return path;
+}
+
+procedure mpfNonrandom {
+  INPUT: a vertex v, a graph G
+  OUTPUT: the minimum path possible
+          starting with v
+  
+  // The algorithm should be
+  // same as naive approach
+  // except it uses 
+  // given v not randomly selected one
+}
+\end{lstlisting}
+
+\subsection{Step 2: Minimum Path First II}
+\begin{flushleft}
+This step is similar to Step 1 algorithm, but focuses more on edges (that being said, distances) instead of the individual vertexes. First, the algorithm must find the shortest edge in the graph regardless of the vertexes. Then, re-utilize Step 1 approach with the starting point of either two vertexes of that shortest edge. The result should have two possible paths, returning the path with less cost. The pseudocode is given in order to help understand this approach better.
+\end{flushleft}
+
+\begin{lstlisting}
+procedure mpf {
+  INPUT: a graph G
+  OUTPUT: the minimum path possible
+  x_a := 0;
+  x_b := 0;
+  dist = INFINITY;
+  foreach (vertex in G) {
+    foreach (vert1 in G except vertex) {
+      if (dist > dist(vertex, vert1)) {
+        dist := dist(vertex, vert1);
+        x_a = vertex;
+        x_b = vert1;
+      }
+    }
+  }
+  p1 := // call Step 1 starting with x_a
+  p2 := // call Step 2 starting with x_b
+  return min(p1, p2);
+}
+\end{lstlisting}
+
+
+% You must include syntax-highlighted source-code in your writeup. The source-code should include the procedure that solves the problem, and any additional procedures that are key to its performance. (You do not need to include code used to test it)
+% You must describe the approach you used to test your implementation to verify that it is correct.
+\section{Verification of a Solution}
+\begin{flushleft}
+The verification of a solution consists of two parts.
+\end{flushleft}
+
+\subsection{Obeying constraints}
+\begin{flushleft}
+The algorithm checks if there is a duplicate pass. If the algorithm mistakenly pass the vertex which has been already passed, it should throw an error at the end. The path API involves a duplicate pass checker.
+\end{flushleft}
+
+\subsection{Comparison between Optimal Solutions}
+\begin{flushleft}
+When the algorithm finishes its search, it should compare with the optimal cost, and return the absolute error. The less the error, the closer the path is the optimal TSP solution
+\end{flushleft}
+
+\section{Conclusion/Possible Implementation}
+\begin{flushleft}
+Frankly speaking, the algorithm has failed to return the most optimal solution but close to it. For example ATT48 algorithm returns 12012, with error 1384 compared to the optimal TSP path.
+
+\textbf{I have tried several more algorithms, but couldn't result in completion.} One of the approach The main goal of the final desired solution is an iterative deepening. 
+\end{flushleft}
+
+\begin{center}
+$T(n) = T(n - 1) + O(*)$
+\end{center}
+
+\section{Code Snippets}
+\begin{flushleft}
+\textbf{Solution 3.1}
+
+\begin{lstlisting}[language=Java]
+Path globalP = new Path();
+globalP.cost = Double.MAX_VALUE;
+for (int i = 0; 
+    i < g.graph.size(); i++) {
+	HashSet<Integer> explored
+	    = new HashSet<Integer>();
+	int V = i;
+	Path p = new Path();
+	p.path.addLast(V);
+	while (explored.size() 
+	    < g.graph.size() - 1) {
+		HashMap<Integer, Double> hm
+	    	= g.graph.get(V);
+		explored.add(V);
+		double minCost
+	    	= Double.MAX_VALUE;
+		int nextV = -1;
+		for (Integer dest 
+		    : hm.keySet()) {
+// I have omitted some indentations
+// due to the limit of margins
+....if (!explored.contains(dest))
+....{
+....    if (hm.get(dest) < minCost) {
+....        minCost = hm.get(dest);
+....        nextV = dest;
+....    }
+....}
+		}
+		V = nextV;
+		explored.remove(V);
+		p.path.addLast(V);
+		p.cost += minCost;
+	}
+	int x_a = p.path.getLast();
+	int x_b = p.path.getFirst();
+	double lastDist
+	    = g.graph.get(x_a).get(x_b);
+	p.cost += lastDist;
+	if (globalP.cost > p.cost) {
+		globalP = p;
+	}
+}
+System.out.println(globalP);// + "\n");
+\end{lstlisting}
+
+\textbf{Solution 3.2 just recycles some of Solution 3.1 codes, hence not included.}
+
+More source codes can be shown in https://github.com/kimkj2017/TSPsolver.git. The brute force approach is not implemented in this repository.
+\end{flushleft}
+
+\bibliographystyle{abbrv}
+\bibliography{sample}
+
+% \balancecolumns 
+
+\end{document}
